@@ -56,19 +56,13 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	// Clear the session data
 	session.Values = make(map[interface{}]interface{})
+	session.Options.MaxAge = -1
 
 	// Save the empty session
 	err = session.Save(r, w)
 	if err != nil {
 		return
 	}
-
-	http.SetCookie(w, &http.Cookie{
-		Name:   "user-session", // or whatever your session name is
-		Value:  "",
-		Path:   "/",
-		MaxAge: -1, // This deletes the cookie
-	})
 
 	http.Redirect(w, r, "/", http.StatusFound)
 }
