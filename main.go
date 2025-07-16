@@ -4,39 +4,47 @@ import (
 	"codegrillathon/handlers"
 	"context"
 	"fmt"
-	"github.com/markbates/goth"
-	"github.com/markbates/goth/providers/github"
-	"github.com/markbates/goth/providers/twitch"
 	"html/template"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/joho/godotenv"
+	"github.com/markbates/goth"
+	"github.com/markbates/goth/providers/github"
+	"github.com/markbates/goth/providers/twitch"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		panic("HELP ME LOAD SOME ENV FILE")
+	}
 	tmpl, err := template.ParseGlob("templates/*.html")
 
 	if err != nil {
 		panic(fmt.Errorf("failed to parse templates: %w\n", err))
 	}
 
+	goth.UseProviders(
+		twitch.New(os.Getenv("TWITCH_CLIENT_ID"), os.Getenv("TWITCH_SECRET"), "https://localhost:8080/auth/twitch/callback"),
+		github.New(os.Getenv("GITHUB_KEY"), os.Getenv("GITHUB_SECRET"), "https://localhost:8080/auth/github/callback"),
+	)
+
 	h := handlers.Handler{Template: *tmpl}
 	mux := http.NewServeMux()
 
 	fs := http.FileServer(http.Dir("assets"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
-	goth.UseProviders(
-		twitch.New(os.Getenv("TWITCH_CLIENT_ID"), os.Getenv("TWITCH_SECRET"), "http://localhost:8080/auth/twitch/callback"),
-		github.New(os.Getenv("GITHUB_KEY"), os.Getenv("GITHUB_SECRET"), "http://localhost:3000/auth/github/callback"),
-	)
 
 	// auth routes
-	mux.HandleFunc("/auth/login/:provider", auth.Login)
-	mux.HandleFunc("/auth/:provider/callback", auth.Callback)
-	mux.HandleFunc("/auth/logout/:provider", auth.Logout)
+	mux.HandleFunc("/auth/twitch", h.Auth)
+	mux.HandleFunc("/auth/twitch/callback", h.Callback)
+	mux.HandleFunc("/logout/", h.Logout)
 
+	// pages route
 	mux.HandleFunc("/", h.Home)
 	mux.HandleFunc("/welcome", h.Welcome)
 
@@ -47,7 +55,7 @@ func main() {
 
 	go func() {
 		fmt.Println("Server started...")
-		if err := server.ListenAndServe(); err != http.ErrServerClosed {
+		if err := server.ListenAndServeTLS("server.crt", "server.key"); err != http.ErrServerClosed {
 			fmt.Printf("Serve error: %v\n", err)
 		}
 	}()

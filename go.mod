@@ -2,7 +2,10 @@ module codegrillathon
 
 go 1.22.2
 
-require github.com/markbates/goth v1.81.0
+require (
+	github.com/joho/godotenv v1.5.1
+	github.com/markbates/goth v1.81.0
+)
 
 require (
 	github.com/go-chi/chi/v5 v5.1.0 // indirect
