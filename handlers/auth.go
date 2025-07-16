@@ -24,8 +24,6 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Println("Call back happened")
-	fmt.Println("we are creating the user store")
 	key := os.Getenv("SESSION_SECRET") // Replace with your SESSION_SECRET or similar
 	maxAge := 86400 * 30               // 30 days
 	isProd := false                    // Set to true when serving over https
@@ -41,13 +39,11 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 	session.Values["user_name"] = user.Name
 	session.Values["avatar_url"] = user.AvatarURL
 
-	fmt.Println("we are saving the session")
 	err = session.Save(r, w)
 	if err != nil {
 		fmt.Printf("error saving the session: %v", err)
 	}
 
-	fmt.Println("we are about to redirect")
 	http.Redirect(w, r, "/welcome", http.StatusFound)
 }
 
