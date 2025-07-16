@@ -50,6 +50,7 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	session, err := gothic.Store.Get(r, "user-session")
 	if err != nil {
+		fmt.Printf("error retrieving session: %v", err)
 		return
 	}
 
@@ -61,6 +62,13 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:   "user-session", // or whatever your session name is
+		Value:  "",
+		Path:   "/",
+		MaxAge: -1, // This deletes the cookie
+	})
 
 	http.Redirect(w, r, "/", http.StatusFound)
 }

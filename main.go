@@ -22,8 +22,8 @@ func main() {
 	if err != nil {
 		panic("HELP ME LOAD SOME ENV FILE")
 	}
-	tmpl, err := template.ParseGlob("templates/*.html")
 
+	tmpl, err := template.ParseGlob("templates/*.html")
 	if err != nil {
 		panic(fmt.Errorf("failed to parse templates: %w\n", err))
 	}
@@ -42,7 +42,7 @@ func main() {
 	// auth routes
 	mux.HandleFunc("/auth/twitch", h.Auth)
 	mux.HandleFunc("/auth/twitch/callback", h.Callback)
-	mux.HandleFunc("/logout/", h.Logout)
+	mux.HandleFunc("/logout", h.Logout)
 
 	// pages route
 	mux.HandleFunc("/", h.Home)
