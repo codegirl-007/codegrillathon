@@ -46,7 +46,8 @@ func main() {
 
 	// pages route
 	mux.HandleFunc("/", h.Home)
-	mux.HandleFunc("/welcome", h.Welcome)
+	mux.Handle("/welcome", handlers.RequireAuth(http.HandlerFunc(h.Welcome)))
+	mux.HandleFunc("/hackathon", h.Hackathon)
 
 	server := &http.Server{
 		Addr:    ":8080",

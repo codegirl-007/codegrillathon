@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"codegrillathon/internals/database"
 	"fmt"
 	"net/http"
 
@@ -38,10 +39,38 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 	session, _ := gothic.Store.Get(r, "user-session")
 	session.Values["user_name"] = user.Name
 	session.Values["avatar_url"] = user.AvatarURL
+	session.Values["user_id"] = user.UserID
 
 	err = session.Save(r, w)
 	if err != nil {
 		fmt.Printf("error saving the session: %v", err)
+	}
+
+	dbClient, err := database.NewDbClient()
+
+	rows, err := dbClient.Query("SELECT COUNT(*) FROM users WHERE username = ? AND provider = ?", user.Name, "twitch")
+	if err != nil {
+		fmt.Printf("error checking user in users table: %v\n", err)
+	}
+
+	defer rows.Close()
+
+	var count int
+	if rows.Next() {
+		if err := rows.Scan(&count); err != nil {
+			fmt.Printf("error with rows: %v", err)
+		}
+	}
+
+	if count == 0 {
+		_, err = dbClient.Exec(
+			"INSERT INTO users (username, user_cap_id, provider, avatar_url, provider_id) VALUES (?, ?, ?, ?, ?)",
+			user.Name, 1, "twitch", user.AvatarURL, user.UserID,
+		)
+
+		if err != nil {
+			fmt.Printf("error saving user to database: %v", err)
+		}
 	}
 
 	http.Redirect(w, r, "/welcome", http.StatusFound)
@@ -65,4 +94,16 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/", http.StatusFound)
+}
+
+func RequireAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		session, _ := gothic.Store.Get(r, "user-session")
+		userID, ok := session.Values["user_id"]
+		if !ok || userID == nil {
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
