@@ -3,9 +3,11 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"os"
+	"sync"
+
 	"github.com/jmoiron/sqlx"
 	_ "github.com/tursodatabase/libsql-client-go/libsql"
-	"os"
 )
 
 type Database interface {
@@ -18,15 +20,25 @@ type DBClient struct {
 	db *sqlx.DB
 }
 
-func NewDbClient() (*DBClient, error) {
-	dsn := os.Getenv("DATABASE_URL") + "?authToken=" + os.Getenv("DATABASE_TOKEN")
-	db, err := sqlx.Open("libsql", dsn)
-	if err != nil {
-		fmt.Printf("error connecting to database: %v", err)
-		return nil, fmt.Errorf("failed to open db: %w", err)
-	}
+var (
+	instance *DBClient
+	once     sync.Once
+	initErr  error
+)
 
-	return &DBClient{db: db}, nil
+func GetDbClientInstance() (*DBClient, error) {
+	once.Do(func() {
+		dsn := os.Getenv("DATABASE_URL") + "?authToken=" + os.Getenv("DATABASE_TOKEN")
+		db, err := sqlx.Open("libsql", dsn)
+		if err != nil {
+			initErr = fmt.Errorf("failed to open db: %w", err)
+			return
+		}
+
+		instance = &DBClient{db: db}
+	})
+
+	return instance, initErr
 }
 
 func (c *DBClient) Query(query string, args ...interface{}) (*sqlx.Rows, error) {
