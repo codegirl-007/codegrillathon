@@ -40,13 +40,14 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 	session.Values["user_name"] = user.Name
 	session.Values["avatar_url"] = user.AvatarURL
 	session.Values["user_id"] = user.UserID
+	session.Values["provider"] = user.Provider
 
 	err = session.Save(r, w)
 	if err != nil {
 		fmt.Printf("error saving the session: %v", err)
 	}
 
-	dbClient, err := database.NewDbClient()
+	dbClient, err := database.GetDbClientInstance()
 
 	rows, err := dbClient.Query("SELECT COUNT(*) FROM users WHERE username = ? AND provider = ?", user.Name, "twitch")
 	if err != nil {
