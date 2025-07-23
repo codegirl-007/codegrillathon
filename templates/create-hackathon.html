@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HackHost - Hackathon Platform</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    HI
+    <form method="post" action="/hackathon/create">
+        <input type="text" name="hackathonName" id="hackathonName" placeholder="Hackathon name" />
+        <textarea name="description" placeholder="Description"></textarea>
+        <input type="date" id="startDate" name="startDate">
+        <input type="date" id="endDate" name="endDate">
+
+        <button type="submit">Submit</button>
+    </form>
+</body>
+
+</html>

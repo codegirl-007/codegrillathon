@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HackHost - Hackathon Platform</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    {{if .Hackathons}}
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Owner ID</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Provider</th>
+        </tr>
+        {{range .Hackathons}}
+        <tr>
+            <td>{{.Id}}</td>
+            <td>{{.HackathonName}}</td>
+            <td>{{.OwnerId}}</td>
+            <td>{{.StartDate}}</td>
+            <td>{{.EndDate}}</td>
+            <td>{{.Provider}}</td>
+        </tr>
+        {{end}}
+    </table>
+    {{else}}
+    <p>No hackathons found for provider: {{.Provider}}</p>
+    {{end}}
+</body>
+
+</html>

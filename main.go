@@ -44,6 +44,12 @@ func main() {
 	mux.HandleFunc("/auth/twitch/callback", h.Callback)
 	mux.HandleFunc("/logout", h.Logout)
 
+	mux.HandleFunc("/create-hackathon", h.CreateHackathon)
+	mux.HandleFunc("/hackathon/create", h.ParseHackthonForm)
+
+	mux.HandleFunc("/hackathon/{provider}", h.ListHackathonsByProvider)
+	mux.HandleFunc("/hackathon/{provider}/{user}", h.ListHackathonsByUser)
+
 	// pages route
 	mux.HandleFunc("/", h.Home)
 	mux.Handle("/welcome", handlers.RequireAuth(http.HandlerFunc(h.Welcome)))
